@@ -1,10 +1,7 @@
-import abc
 import os
-from abc import ABC
-from datetime import datetime, timezone
-import time
-import calendar
-from dateutil import tz
+from abc import ABC, abstractmethod
+import SystemClockFactory
+
 
 class WallpaperChanger(ABC):
     def __init__(self, ini_config):
@@ -12,6 +9,7 @@ class WallpaperChanger(ABC):
         self.curr_hour = -1
         self.desktop_wallpaper_path = ini_config.get("Desktop", "WallpaperPath", fallback="")
         self.lock_screen_wallpaper_path = ini_config.get("LockScreen", "WallpaperPath", fallback="")
+        self.system_clock = SystemClockFactory.create_system_clock()
 
     def try_change_wallpaper(self):
         if not self.__need_change_wallpaper():
@@ -29,16 +27,16 @@ class WallpaperChanger(ABC):
     def __change_lock_screen_wallpaper(self):
         self._change_lock_screen_wallpaper_impl(self.__get_image_path(self.lock_screen_wallpaper_path))
 
-    @abc.abstractmethod
+    @abstractmethod
     def _change_desktop_wallpaper_impl(self, image_path):
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def _change_lock_screen_wallpaper_impl(self, image_path):
         pass
 
     def __need_change_wallpaper(self):
-        self.curr_hour = datetime.now().hour
+        self.curr_hour = self.system_clock.now().hour
         if self.curr_hour != self.prev_hour:
             self.prev_hour = self.curr_hour
             return True
